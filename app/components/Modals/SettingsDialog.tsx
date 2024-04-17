@@ -1,33 +1,24 @@
-import { CONSTS } from "@/app/utils"
-import usePersistedState from "@/hooks/usePersistedState"
-import { useState } from "react"
-import Dialog from "./DialogWrapper"
+"use client"
 
-type Props = {
-  hasUpperCase: boolean
-  setHasUpperCase: (value: boolean) => void
-  hasLowerCase: boolean
-  setHasLowerCase: (value: boolean) => void
-  hasSpecialChar: boolean
-  setHasSpecialChar: (value: boolean) => void
-  hasRequiredCharLeng: boolean
-  setHasRequiredCharLeng: (value: boolean) => void
-  hasNumber: boolean
-  setHasNumber: (value: boolean) => void
-}
-const SettingsDialog = ({
-  hasLowerCase,
-  hasRequiredCharLeng,
-  hasSpecialChar,
-  hasUpperCase,
-  setHasLowerCase,
-  setHasRequiredCharLeng,
-  setHasSpecialChar,
-  setHasUpperCase,
-  hasNumber,
-  setHasNumber,
-}: Props) => {
+import { CONSTS } from "@/app/utils"
+import { useEffect, useState } from "react"
+import Dialog from "./DialogWrapper"
+import { useSettingsContext } from "@/context"
+
+const SettingsDialog = () => {
   const [openSettingsDialog, setOpenSettingsDialog] = useState(false)
+  const {
+    setHasLowerCase,
+    setHasNumber,
+    setHasRequiredCharLeng,
+    setHasSpecialChar,
+    setHasUpperCase,
+    hasLowerCase,
+    hasNumber,
+    hasRequiredCharLeng,
+    hasSpecialChar,
+    hasUpperCase,
+  } = useSettingsContext()
 
   const handleOpenSettingsModal = () => {
     setOpenSettingsDialog(true)
@@ -45,6 +36,17 @@ const SettingsDialog = ({
     states?.[name]?.(checked)
   }
 
+  useEffect(() => {
+    if (
+      !hasLowerCase &&
+      !hasNumber &&
+      !hasUpperCase &&
+      !hasRequiredCharLeng &&
+      !hasSpecialChar
+    ) {
+      handleOpenSettingsModal()
+    }
+  }, [])
   return (
     <>
       <button

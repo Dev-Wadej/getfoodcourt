@@ -1,47 +1,27 @@
 "use client"
 import { useEffect, useState } from "react"
-import usePersistedState from "@/hooks/usePersistedState"
 import {
   checkIfHasNumber,
   checkIfHasSpecialChar,
   checkIfLowerCase,
   checkIfUpperCase,
-  checkIfValidEmail,
-  CONSTS,
 } from "./utils"
 import SettingsDialog from "./components/Modals/SettingsDialog"
+import { useSettingsContext } from "@/context"
 
 export default function Home() {
   const [showwPassword, setShowPassword] = useState(false)
 
   const [formValues, setFormValues] = useState({ email: "", password: "" })
-  const [isValid, setIsValid] = useState({
-    hasUpperCase: false,
-    hasLowerCase: false,
-    hasSpecialChar: false,
-    hasRequiredCharLeng: false,
-    hasNumber: false,
-    isEmail: false,
-  })
-  const [hasUpperCase, setHasUpperCase] = usePersistedState<boolean>(
-    CONSTS.upper_case,
-    false
-  )
-  const [hasLowerCase, setHasLowerCase] = usePersistedState<boolean>(
-    CONSTS.lower_case,
-    false
-  )
-  const [hasNumber, setHasNumber] = usePersistedState<boolean>(
-    CONSTS.lower_case,
-    false
-  )
-  const [hasSpecialChar, setHasSpecialChar] = usePersistedState<boolean>(
-    CONSTS.special_char,
-    false
-  )
-
-  const [hasRequiredCharLeng, setHasRequiredCharLeng] =
-    usePersistedState<boolean>(CONSTS.char_length, false)
+  const {
+    isValid,
+    handlePasswordValidityChecks,
+    hasLowerCase,
+    hasNumber,
+    hasRequiredCharLeng,
+    hasSpecialChar,
+    hasUpperCase,
+  } = useSettingsContext()
 
   const handleFormValues = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -53,26 +33,8 @@ export default function Home() {
   }
 
   useEffect(() => {
-    setIsValid((prev) => ({
-      ...prev,
-      hasLowerCase: hasLowerCase
-        ? checkIfLowerCase(formValues?.password)
-        : true,
-      hasNumber: hasNumber ? checkIfHasNumber(formValues?.password) : true,
-      hasRequiredCharLeng: hasRequiredCharLeng
-        ? (formValues?.password).length > 7
-        : true,
-      hasSpecialChar: hasSpecialChar
-        ? checkIfHasSpecialChar(formValues?.password)
-        : true,
-      hasUpperCase: hasUpperCase
-        ? checkIfUpperCase(formValues?.password)
-        : true,
-      isEmail:
-        formValues.email.length > 0
-          ? checkIfValidEmail(formValues.email)
-          : false,
-    }))
+    const { email, password } = formValues
+    handlePasswordValidityChecks(password, email)
   }, [
     JSON.stringify(formValues),
     hasLowerCase,
@@ -83,36 +45,27 @@ export default function Home() {
   ])
 
   const validPassword =
-    isValid.hasLowerCase &&
-    isValid.hasNumber &&
-    isValid.hasRequiredCharLeng &&
-    isValid.hasSpecialChar &&
-    isValid.hasUpperCase
+    formValues.password.length > 0 &&
+    isValid?.hasLowerCase &&
+    isValid?.hasNumber &&
+    isValid?.hasRequiredCharLeng &&
+    isValid?.hasSpecialChar &&
+    isValid?.hasUpperCase
+
+  const isMediumMode =
+    checkIfUpperCase(formValues?.password) &&
+    checkIfLowerCase(formValues?.password) &&
+    checkIfHasSpecialChar(formValues?.password)
 
   const isHardMode =
     formValues.password.length > 10 &&
-    isValid.hasUpperCase &&
-    isValid.hasLowerCase &&
-    isValid.hasSpecialChar
-  isValid.hasNumber
-  const isMediumMode =
-    isValid.hasUpperCase && isValid.hasLowerCase && isValid.hasSpecialChar
+    isMediumMode &&
+    checkIfHasNumber(formValues?.password)
 
   return (
     <main className="flex flex-col  items-center  w-screen h-screen">
       {/* ---------Settings dialog here------ */}
-      <SettingsDialog
-        hasLowerCase={hasLowerCase}
-        hasRequiredCharLeng={hasRequiredCharLeng}
-        hasSpecialChar={hasSpecialChar}
-        hasUpperCase={hasUpperCase}
-        setHasLowerCase={setHasLowerCase}
-        setHasRequiredCharLeng={setHasRequiredCharLeng}
-        setHasUpperCase={setHasUpperCase}
-        setHasSpecialChar={setHasSpecialChar}
-        hasNumber={hasNumber}
-        setHasNumber={setHasNumber}
-      />
+      <SettingsDialog />
       {/* --------------------------------- */}
       <div className="flex flex-col justify-center flex-1">
         <form action="" className="border shadow-sm p-4 rounded w-96">
@@ -129,7 +82,7 @@ export default function Home() {
               placeholder="Enter your email"
             />
 
-            {!isValid.isEmail && formValues.email.length > 0 && (
+            {!isValid?.isEmail && formValues.email.length > 0 && (
               <div className="text-red-500 text-xs mt-1">
                 Enter a valid email
               </div>
@@ -164,8 +117,8 @@ export default function Home() {
           )}
           <button
             className="text-white bg-forground-primary font-medium w-full block rounded-md py-3 mt-8 disabled:bg-gray-500 disabled:cursor-not-allowed disabled:opacity-70 transition-all"
-            type="submit"
-            disabled={!isValid.isEmail || !validPassword}
+            type="button"
+            disabled={!isValid?.isEmail || !validPassword}
           >
             Login
           </button>
