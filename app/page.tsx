@@ -1,113 +1,176 @@
-import Image from "next/image";
+"use client"
+import { useEffect, useState } from "react"
+import usePersistedState from "@/hooks/usePersistedState"
+import {
+  checkIfHasNumber,
+  checkIfHasSpecialChar,
+  checkIfLowerCase,
+  checkIfUpperCase,
+  checkIfValidEmail,
+  CONSTS,
+} from "./utils"
+import SettingsDialog from "./components/Modals/SettingsDialog"
 
 export default function Home() {
+  const [showwPassword, setShowPassword] = useState(false)
+
+  const [formValues, setFormValues] = useState({ email: "", password: "" })
+  const [isValid, setIsValid] = useState({
+    hasUpperCase: false,
+    hasLowerCase: false,
+    hasSpecialChar: false,
+    hasRequiredCharLeng: false,
+    hasNumber: false,
+    isEmail: false,
+  })
+  const [hasUpperCase, setHasUpperCase] = usePersistedState<boolean>(
+    CONSTS.upper_case,
+    false
+  )
+  const [hasLowerCase, setHasLowerCase] = usePersistedState<boolean>(
+    CONSTS.lower_case,
+    false
+  )
+  const [hasNumber, setHasNumber] = usePersistedState<boolean>(
+    CONSTS.lower_case,
+    false
+  )
+  const [hasSpecialChar, setHasSpecialChar] = usePersistedState<boolean>(
+    CONSTS.special_char,
+    false
+  )
+
+  const [hasRequiredCharLeng, setHasRequiredCharLeng] =
+    usePersistedState<boolean>(CONSTS.char_length, false)
+
+  const handleFormValues = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormValues((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleShowPassword = () => {
+    setShowPassword((prev) => !prev)
+  }
+
+  useEffect(() => {
+    setIsValid((prev) => ({
+      ...prev,
+      hasLowerCase: hasLowerCase
+        ? checkIfLowerCase(formValues?.password)
+        : true,
+      hasNumber: hasNumber ? checkIfHasNumber(formValues?.password) : true,
+      hasRequiredCharLeng: hasRequiredCharLeng
+        ? (formValues?.password).length > 7
+        : true,
+      hasSpecialChar: hasSpecialChar
+        ? checkIfHasSpecialChar(formValues?.password)
+        : true,
+      hasUpperCase: hasUpperCase
+        ? checkIfUpperCase(formValues?.password)
+        : true,
+      isEmail:
+        formValues.email.length > 0
+          ? checkIfValidEmail(formValues.email)
+          : false,
+    }))
+  }, [
+    JSON.stringify(formValues),
+    hasLowerCase,
+    hasNumber,
+    hasSpecialChar,
+    hasUpperCase,
+    hasRequiredCharLeng,
+  ])
+
+  const validPassword =
+    isValid.hasLowerCase &&
+    isValid.hasNumber &&
+    isValid.hasRequiredCharLeng &&
+    isValid.hasSpecialChar &&
+    isValid.hasUpperCase
+
+  const isHardMode =
+    formValues.password.length > 10 &&
+    isValid.hasUpperCase &&
+    isValid.hasLowerCase &&
+    isValid.hasSpecialChar
+  isValid.hasNumber
+  const isMediumMode =
+    isValid.hasUpperCase && isValid.hasLowerCase && isValid.hasSpecialChar
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+    <main className="flex flex-col  items-center  w-screen h-screen">
+      {/* ---------Settings dialog here------ */}
+      <SettingsDialog
+        hasLowerCase={hasLowerCase}
+        hasRequiredCharLeng={hasRequiredCharLeng}
+        hasSpecialChar={hasSpecialChar}
+        hasUpperCase={hasUpperCase}
+        setHasLowerCase={setHasLowerCase}
+        setHasRequiredCharLeng={setHasRequiredCharLeng}
+        setHasUpperCase={setHasUpperCase}
+        setHasSpecialChar={setHasSpecialChar}
+        hasNumber={hasNumber}
+        setHasNumber={setHasNumber}
+      />
+      {/* --------------------------------- */}
+      <div className="flex flex-col justify-center flex-1">
+        <form action="" className="border shadow-sm p-4 rounded w-96">
+          <div className="mb-5">
+            <label htmlFor="email" className="block mb-2">
+              Email <span className="text-error">*</span>
+            </label>
+            <input
+              onChange={handleFormValues}
+              type="email"
+              id="email"
+              name="email"
+              className="border-border border rounded-md p-3 placeholder:text-xs w-full focus:outline-forground-primary"
+              placeholder="Enter your email"
             />
-          </a>
-        </div>
-      </div>
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+            {!isValid.isEmail && formValues.email.length > 0 && (
+              <div className="text-red-500 text-xs mt-1">
+                Enter a valid email
+              </div>
+            )}
+          </div>
+          <div>
+            <label htmlFor="password" className="block mb-2">
+              Password <span className="text-error">*</span>
+            </label>
+            <div className="flex items-center justify-between border-border border rounded-md p-3  w-full group hover:outline-forground-primary focus:outline-forground-primary active:outline-forground-primary">
+              <input
+                onChange={handleFormValues}
+                type={showwPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                className="placeholder:text-xs w-full focus:outline-none"
+                placeholder="Enter your password"
+              />
+              <button
+                className="text-forground-primary text-xs font-semibold"
+                type="button"
+                onClick={handleShowPassword}
+              >
+                {showwPassword ? "hide" : "show"}
+              </button>
+            </div>
+          </div>
+          {formValues.password.length > 0 && (
+            <div className="text-green-500 text-xs mt-1">
+              {isHardMode ? "Hard" : isMediumMode ? "Medium" : "Easy"}
+            </div>
+          )}
+          <button
+            className="text-white bg-forground-primary font-medium w-full block rounded-md py-3 mt-8 disabled:bg-gray-500 disabled:cursor-not-allowed disabled:opacity-70 transition-all"
+            type="submit"
+            disabled={!isValid.isEmail || !validPassword}
+          >
+            Login
+          </button>
+        </form>
       </div>
     </main>
-  );
+  )
 }
