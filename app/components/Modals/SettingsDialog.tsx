@@ -97,7 +97,7 @@ const SettingsDialog = () => {
               className="accent-forground-primary cursor-pointer"
             />
             <label htmlFor={CONSTS.number} className="cursor-pointer">
-              At least 1 uppercase
+              At least 1 number
             </label>
           </div>
           <div className="flex items-center gap-2">
