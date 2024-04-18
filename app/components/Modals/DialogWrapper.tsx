@@ -16,9 +16,7 @@ const Dialog = ({ children, modalTitle, openModal, setOpenModal }: Props) => {
     <>
       <div
         className={`fixed top-0 transition-all  ${
-          openModal
-            ? "left-0 top-0 opacity-100"
-            : "-left-full -top-full opacity-5"
+          openModal ? "left-0 top-0 opacity-100" : "opacity-0 hidden"
         } w-full h-full flex items-center justify-center z-50 bg-black/50`}
         aria-label="modal_wrapper"
       >
